@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>11-сынып Информатика Тесті</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome үшін иконкалар -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .glass {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col justify-between">
+
+    <!-- 1. ТІРКЕЛУ / МОДЕЛЬДІ ТЕРЕЗЕ -->
+    <div id="startModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-6">
+            <div class="text-center space-y-2">
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-indigo-500/10 text-indigo-400 mb-2 border border-indigo-500/20">
+                    <i class="fa-solid fa-graduation-cap text-3xl"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-white">Информатика Тесті</h2>
+                <p class="text-sm text-slate-400">11-сынып білім алушыларына арналған тестілеу</p>
+            </div>
+
+            <form id="startForm" onsubmit="startQuiz(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Оқушының аты-жөні</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-user absolute left-3 top-1/2 -translate-y-1/2 text-slate-500"></i>
+                        <input type="text" id="studentName" required placeholder="Мысалы: Арман Асанұлы" 
+                            class="w-full pl-10 pr-4 py-2.5 bg-slate-900 border border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none text-white placeholder-slate-500 text-sm">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Сыныбы</label>
+                        <div class="relative">
+                            <i class="fa-solid fa-school absolute left-3 top-1/2 -translate-y-1/2 text-slate-500"></i>
+                            <input type="text" id="studentClass" required placeholder="11 A" 
+                                class="w-full pl-10 pr-4 py-2.5 bg-slate-900 border border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none text-white placeholder-slate-500 text-sm">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Нұсқаны таңдаңыз</label>
+                        <div class="relative">
+                            <i class="fa-solid fa-list-ol absolute left-3 top-1/2 -translate-y-1/2 text-slate-500"></i>
+                            <select id="variantSelect" required 
+                                class="w-full pl-10 pr-4 py-2.5 bg-slate-900 border border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none text-white text-sm appearance-none cursor-pointer">
+                                <option value="1">1-нұсқа</option>
+                                <option value="2">2-нұсқа</option>
+                                <option value="3">3-нұсқа</option>
+                                <option value="4">4-нұсқа</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-indigo-950/40 border border-indigo-800/40 rounded-xl p-3 flex items-center space-x-3 text-xs text-indigo-300">
+                    <i class="fa-solid fa-clock text-lg text-indigo-400"></i>
+                    <span>Тест ұзақтығы: <b>30 минут</b> (20 сұрақ)</span>
+                </div>
+
+                <button type="submit" 
+                    class="w-full py-3 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-semibold rounded-xl shadow-lg shadow-indigo-500/25 transition-all duration-200">
+                    Тестті бастау <i class="fa-solid fa-arrow-right ml-2"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 2. БАСТЫ ТЕСТІЛЕУ ИНТЕРФЕЙСІ -->
+    <div id="quizApp" class="hidden flex-1 flex flex-col max-w-5xl w-full mx-auto p-4 sm:p-6 space-y-6">
+        
+        <!-- Деректер мен Таймер Бары -->
+        <header class="bg-slate-800/80 border border-slate-700 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-4 shadow-lg">
+            <div class="flex items-center space-x-4">
+                <div class="bg-indigo-600/20 border border-indigo-500/30 p-2.5 rounded-xl text-indigo-400">
+                    <i class="fa-solid fa-user-graduate text-xl"></i>
+                </div>
+                <div>
+                    <h3 id="displayStudentInfo" class="font-bold text-white text-base">---</h3>
+                    <p id="displaySubjectInfo" class="text-xs text-slate-400">11-сынып Информатика</p>
+                </div>
+            </div>
+
+            <!-- Таймер -->
+            <div id="timerContainer" class="flex items-center space-x-2 bg-slate-900 border border-slate-700 px-4 py-2 rounded-xl text-amber-400 font-mono text-lg font-bold">
+                <i class="fa-regular fa-clock animate-pulse"></i>
+                <span id="timer">30:00</span>
+            </div>
+        </header>
+
+        <!-- Прогресс бар -->
+        <div class="space-y-1">
+            <div class="flex justify-between text-xs text-slate-400 font-medium">
+                <span>Прогресс</span>
+                <span id="progressText">0 / 20</span>
+            </div>
+            <div class="w-full bg-slate-800 rounded-full h-2 overflow-hidden border border-slate-700/50">
+                <div id="progressBar" class="bg-gradient-to-r from-indigo-500 to-purple-500 h-full w-0 transition-all duration-300"></div>
+            </div>
+        </div>
+
+        <!-- Сұрақ картасы -->
+        <main class="grid grid-cols-1 lg:grid-cols-4 gap-6 flex-1">
+            <div class="lg:col-span-3 bg-slate-800/60 border border-slate-700/80 rounded-2xl p-6 flex flex-col justify-between shadow-xl space-y-6">
+                <div>
+                    <div class="flex items-center justify-between mb-4">
+                        <span id="questionBadge" class="bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 text-xs font-semibold px-3 py-1 rounded-full">
+                            Сұрақ #1
+                        </span>
+                    </div>
+                    <h2 id="questionText" class="text-lg sm:text-xl font-medium text-white mb-6">
+                        Сұрақ жүктелуде...
+                    </h2>
+                    
+                    <!-- Жауап нұсқалары -->
+                    <div id="optionsContainer" class="space-y-3">
+                        <!-- Бағдарламалық түрде толтырылады -->
+                    </div>
+                </div>
+
+                <!-- Навигация батырмалары -->
+                <div class="flex items-center justify-between pt-4 border-t border-slate-700/60">
+                    <button id="prevBtn" onclick="prevQuestion()" 
+                        class="px-4 py-2 rounded-xl bg-slate-700 hover:bg-slate-600 text-white text-sm font-medium transition disabled:opacity-40 disabled:cursor-not-allowed">
+                        <i class="fa-solid fa-chevron-left mr-1"></i> Алдыңғы
+                    </button>
+                    <button id="nextBtn" onclick="nextQuestion()" 
+                        class="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium transition">
+                        Келесі <i class="fa-solid fa-chevron-right ml-1"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Сұрақтар торшасы (Быстрая навигация) -->
+            <div class="bg-slate-800/40 border border-slate-700/80 rounded-2xl p-5 flex flex-col justify-between">
+                <div>
+                    <h4 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">Сұрақтар тізімі</h4>
+                    <div id="questionGrid" class="grid grid-cols-5 gap-2">
+                        <!-- 1-ден 20-ға дейінгі түймелер -->
+                    </div>
+                </div>
+
+                <button onclick="confirmSubmission()" 
+                    class="mt-6 w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-xl shadow-lg shadow-emerald-600/20 transition duration-200 text-sm">
+                    <i class="fa-solid fa-check-circle mr-2"></i> Тестті аяқтау
+                </button>
+            </div>
+        </main>
+    </div>
+
+    <!-- 3. НӘТИЖЕ МОДЕЛЬДІ ТЕРЕЗЕСІ -->
+    <div id="resultModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-md">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 sm:p-8 max-w-lg w-full shadow-2xl text-center space-y-6">
+            <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-4xl">
+                <i class="fa-solid fa-trophy"></i>
+            </div>
+
+            <div>
+                <h2 class="text-2xl font-bold text-white">Тест аяқталды!</h2>
+                <p id="resultStudentInfo" class="text-sm text-slate-400 mt-1">Оқушы нәтижесі</p>
+            </div>
+
+            <!-- Балл мен Пайыз -->
+            <div class="grid grid-cols-2 gap-4">
+                <div class="bg-slate-900 border border-slate-700 p-4 rounded-xl">
+                    <p class="text-xs text-slate-400 mb-1">Жинаған баллыңыз</p>
+                    <p id="resultScore" class="text-3xl font-extrabold text-indigo-400">0 / 20</p>
+                </div>
+                <div class="bg-slate-900 border border-slate-700 p-4 rounded-xl">
+                    <p class="text-xs text-slate-400 mb-1">Пайыздық көрсеткіш</p>
+                    <p id="resultPercentage" class="text-3xl font-extrabold text-emerald-400">0%</p>
+                </div>
+            </div>
+
+            <!-- Жіберу статусы -->
+            <div id="sendStatus" class="p-3 rounded-xl bg-slate-900 text-xs text-slate-400 border border-slate-700/50 flex items-center justify-center space-x-2">
+                <i class="fa-solid fa-spinner fa-spin text-indigo-400"></i>
+                <span>Деректер Google Apps Script-ке жіберілуде...</span>
+            </div>
+
+            <button onclick="location.reload()" 
+                class="w-full py-3 bg-slate-700 hover:bg-slate-600 text-white font-semibold rounded-xl transition text-sm">
+                Қайта тапсыру
+            </button>
+        </div>
+    </div>
+
+    <!-- ТАПСЫРУДЫ РАСТАУ МОДЕЛЬДІ ТЕРЕЗЕСІ -->
+    <div id="confirmModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 max-w-sm w-full text-center space-y-4 shadow-2xl">
+            <i class="fa-solid fa-circle-exclamation text-4xl text-amber-400"></i>
+            <h3 class="text-lg font-bold text-white">Тестті аяқтағыңыз келе ме?</h3>
+            <p class="text-xs text-slate-400">Сіз барлық сұрақтарға жауап бергеніңізді тексеріңіз.</p>
+            <div class="flex space-x-3">
+                <button onclick="closeConfirmModal()" class="flex-1 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-xl text-sm font-medium">Жоқ, жалғастыру</button>
+                <button onclick="finishQuiz()" class="flex-1 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-sm font-medium">Иә, аяқтау</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // 1. GOOGLE APPS SCRIPT WEB APP URL
+        // ==========================================
+        const GOOGLE_SCRIPT_URL = "СІЗДІҢ_1_ҚАДАМДА_АЛҒАН_WEB_APP_URL_СІЛТЕМЕҢІЗ";
+
+        // ==========================================
+        // 2. ДЕРЕКТЕР МЕН СҰРАҚТАР (4 НҰСҚА x 20 СҰРАҚ)
+        // ==========================================
+        const quizData = {
+            1: [
+                { q: "Python-да тізімнің ұзындығын анықтайтын функция қандай?", options: ["size()", "count()", "len()", "length()"], correct: 2 },
+                { q: "SQL-де деректер базасынан ақпаратты таңдап алу операторы?", options: ["SELECT", "GET", "EXTRACT", "FETCH"], correct: 0 },
+                { q: "Сыртқы шабуылдардан қорғайтын желілік экран қалай аталады?", options: ["Антивирус", "Брандмауэр (Firewall)", "Роутер", "Прокси"], correct: 1 },
+                { q: "ASCII кодында 1 символ қанша битпен кодталады?", options: ["4 бит", "8 бит", "16 бит", "32 бит"], correct: 1 },
+                { q: "HTML-де гиперсілтеме жасау үшін қай тег қолданылады?", options: ["<link>", "<a>", "<href>", "<url>"], correct: 1 },
+                { q: "Алгоритмнің орындалу реттілігі бірінен соң бірі жүзеге асатын түрі?", options: ["Тармақталған", "Циклдік", "Сызықтық", "Қосымша"], correct: 2 },
+                { q: "Электрондық пошта арқылы құпия деректерді ұрлау шабуылы?", options: ["Фишинг", "Спам", "Дорвей", "DDOS"], correct: 0 },
+                { q: "Python-да циклді мерзімінен бұрын тоқтату операторы?", options: ["continue", "exit", "stop", "break"], correct: 3 },
+                { q: "IPv4 мекенжайы неше биттен тұрады?", options: ["16 бит", "32 бит", "64 бит", "128 бит"], correct: 1 },
+                { q: "Мәліметтер базасындағы әр жазбаны бірегей анықтайтын өріс?", options: ["Сыртқы кілт", "Индекс", "Алғашқы кілт (Primary Key)", "Логикалық өріс"], correct: 2 },
+                { q: "Жасанды интеллект саласында кеңінен қолданылатын бағдарламалау тілі?", options: ["Pascal", "C++", "Python", "HTML"], correct: 2 },
+                { q: "Python-да сөздіктерді (dictionary) жасау үшін қай жақша қолданылады?", options: ["[]", "()", "{}", "<>"], correct: 2 },
+                { q: "Жасанды нейрондық желілердің негізгі биологиялық аналогы?", options: ["ДНК", "Нейрон", "Клетка", "Синапс"], correct: 1 },
+                { q: "Компьютердің жедел жадысы қалай аталады?", options: ["ROM", "HDD", "RAM", "SSD"], correct: 2 },
+                { q: "Модельдеудің бірінші кезеңі қандай?", options: ["Модельді құру", "Есептің қойылымы", "Компьютерлік эксперимент", "Нәтижелерді талдау"], correct: 1 },
+                { q: "Python-да функцияны анықтау түйін сөзі?", options: ["func", "def", "function", "define"], correct: 1 },
+                { q: "Ақпаратты шифрлау және дешифрлау ғылымы?", options: ["Криптография", "Стеганография", "Кодтау", "Семиотика"], correct: 0 },
+                { q: "Big Data-ның '3V' концепциясына кірмейтін параметр?", options: ["Volume", "Velocity", "Variety", "Vector"], correct: 3 },
+                { q: "Бағдарламадағы қателіктерді іздеу және түзету процесі?", options: ["Компиляция", "Трансляция", "Отладка (Debugging)", "Интерпретация"], correct: 2 },
+                { q: "ООП (Объектілі-бағытталған бағдарламалау) негізгі принципіне жатпайтыны?", options: ["Инкапсуляция", "Наследствие", "Полиморфизм", "Трансляция"], correct: 3 }
+            ],
+            2: [
+                { q: "Компьютерлік вирустардан қорғайтын негізгі бағдарлама?", options: ["Утилита", "Антивирус", "Драйвер", "Архиватор"], correct: 1 },
+                { q: "Python-да қалдықсыз бөлу операторы қандай?", options: ["/", "//", "%", "div"], correct: 1 },
+                { q: "SQL-де кестеге жаңа жазба қосу пәрмені?", options: ["UPDATE", "ADD ROW", "INSERT INTO", "CREATE"], correct: 2 },
+                { q: "HTTP хатшасының қауіпсіз, шифрланған түрі?", options: ["FTP", "HTTPS", "SSH", "SMTP"], correct: 1 },
+                { q: "HTML кестесінде жаңа жол құратын тег?", options: ["<td>", "<th>", "<tr>", "<table-row>"], correct: 2 },
+                { q: "Деректер базасында 'бірдің көпке' (1:M) байланысы нені білдіреді?", options: ["1 жазбаға 1 жазба сәйкес", "1 жазбаға бірнеше жазба сәйкес", "Көп жазбаға көп жазба", "Байланыс жоқ"], correct: 1 },
+                { q: "Рекурсия дегеніміз не?", options: ["Циклдің тоқтауы", "Функцияның өзін-өзі шақыруы", "Қателікті өңдеу", "Жадыны тазалау"], correct: 1 },
+                { q: "Компьютерлік желідегі құрылғының қайталанбас физикалық мекенжайы?", options: ["IP-мекенжай", "MAC-мекенжай", "URL", "DNS"], correct: 1 },
+                { q: "Python-да өзгермейтін тізім (кортеж) қай жақшамен беріледі?", options: ["[]", "()", "{}", "<>"], correct: 1 },
+                { q: "Web-парақтардың безендірілуі мен стильдерін анықтайтын тіл?", options: ["HTML", "JavaScript", "CSS", "PHP"], correct: 2 },
+                { q: "Өте үлкен көлемдегі структурираланбаған деректер жиынтығы?", options: ["Big Data", "Data Mining", "Cloud Storage", "SQL Database"], correct: 0 },
+                { q: "Операциялық жүйенің аппаратурамен тікелей жұмыс істейтін ядросы?", options: ["Shell", "Kernel", "Bios", "GUI"], correct: 1 },
+                { q: "Машиналық оқытудың (Machine Learning) түріне жатпайтыны?", options: ["Мұғаліммен оқыту", "Мұғалімсіз оқыту", "Арматуралық оқыту", "Статикалық оқыту"], correct: 3 },
+                { q: "Python-да шартты тексеру операторы?", options: ["for", "while", "if-elif-else", "switch"], correct: 2 },
+                { q: "Ақпараттық қауіпсіздіктің 3 негізгі триадасы?", options: ["Құпиялылық, Тұтастық, Қолжетімділік", "Жылдамдық, Сенімділік, Арзандық", "Кодтау, Шифрлау, Қорғау", "Пароль, Логин, Биометрия"], correct: 0 },
+                { q: "Симметриялы шифрлау деген не?", options: ["Шифрлау мен дешифрлауға 1 кілт қолданылады", "2 түрлі кілт қолданылады", "Кілт мүлдем қолданылмайды", "Тек ашық кілт қолданылады"], correct: 0 },
+                { q: "Python-да файлды ашу үшін қолданылатын функция?", options: ["read()", "open()", "file()", "load()"], correct: 1 },
+                { q: "SQL-де сураныс нәтижесін сұрыптау операторы?", options: ["GROUP BY", "ORDER BY", "SORT BY", "FILTER BY"], correct: 1 },
+                { q: "Бұлтты технологиялардың (Cloud Computing) мысалы?", options: ["MS Word 2007", "Google Drive", "WinRAR", "Paint"], correct: 1 },
+                { q: "Стек (Stack) деректер құрылымының принципі?", options: ["FIFO (First In First Out)", "LIFO (Last In First Out)", "Random Access", "Priority Queue"], correct: 1 }
+            ],
+            3: [
+                { q: "Микропроцессордың жылдамдығы мен өнімділігі немен өлшенеді?", options: ["Байт", "Герц (Гц/ГГц)", "Метр", "Пиксель"], correct: 1 },
+                { q: "Python-да тізімнің соңына жаңа элемент қосу әдісі?", options: ["push()", "add()", "append()", "insert()"], correct: 2 },
+                { q: "SQL-де жазбаларды сүзгілеу (шарт қою) үшін не қолданылады?", options: ["SELECT", "WHERE", "FROM", "HAVING"], correct: 1 },
+                { q: "Домендік атауды IP-мекенжайға айналдыратын сервер жүйесі?", options: ["DHCP", "DNS", "FTP", "HTTP"], correct: 1 },
+                { q: "HTML-де ең үлкен тақырып маңыздылығын білдіретін тег?", options: ["<h6>", "<head>", "<h1>", "<title>"], correct: 2 },
+                { q: "Алгоритмнің графикалық бейнеленуі қалай аталады?", options: ["Псевдокод", "Блок-схема", "Программа", "Сценарий"], correct: 1 },
+                { q: "Компьютерге рұқсатсыз кіріп, зақым келтіретін зиянды бағдарлама?", options: ["Antivirus", "Malware (Зиянды БА)", "Driver", "Firewall"], correct: 1 },
+                { q: "Python-да санның дәрежесін табу операторы?", options: ["^", "**", "pow", "//"], correct: 1 },
+                { q: "Желілік пакеттерді ең тиімді бағыт бойынша бағыттайтын құрылғы?", options: ["Концентратор (Hub)", "Коммутатор (Switch)", "Маршрутизатор (Router)", "Кабель"], correct: 2 },
+                { q: "Реляциялық мәліметтер базасын басқару жүйесіне (ДББЖ) мысал?", options: ["MySQL", "Adobe Photoshop", "Visual Studio Code", "AutoCAD"], correct: 0 },
+                { q: "Сараптамалық жүйелердің негізгі құрамдас бөлігі?", options: ["Білімдер базасы", "Графикалық редактор", "Транслятор", "Архиватор"], correct: 0 },
+                { q: "Python-да ООП-та класс құру түйін сөзі?", options: ["object", "class", "structure", "def"], correct: 1 },
+                { q: "Серверге шамадан тыс сұраныс жіберіп, оны істен шығару шабуылы?", options: ["Phishing", "DDoS", "XSS", "Brute Force"], correct: 1 },
+                { q: "Компьютерлік ақпаратты өлшеудің ең кіші бірлігі?", options: ["Байт", "Бит", "Киллабайт", "Бод"], correct: 1 },
+                { q: "Python-да мәтіндік жолды бүтін санға айналдыру функциясы?", options: ["str()", "float()", "int()", "char()"], correct: 2 },
+                { q: "Асимметриялы шифрлауда неше кілт қолданылады?", options: ["1 (Құпия)", "2 (Ашық және Жабық)", "3 кілт", "Кілтсіз"], correct: 1 },
+                { q: "SQL-де кестені деректер базасынан толықтай жою пәрмені?", options: ["DELETE TABLE", "REMOVE TABLE", "DROP TABLE", "ERASE TABLE"], correct: 2 },
+                { q: "CSS-те веб-парақ элементінің фон түсін өзгерту қасиеті?", options: ["color", "background-color", "font-color", "border-color"], correct: 1 },
+                { q: "Кезек (Queue) деректер құрылымының жұмыс принципі?", options: ["FIFO (First In First Out)", "LIFO (Last In First Out)", "Random", "Priority"], correct: 0 },
+                { q: "Нейронды желілерді оқыту кезінде қателікті азайту әдісі?", options: ["Сұрыптау", "Градиенттік түсу (Gradient Descent)", "Интерполяция", "Экстраполяция"], correct: 1 }
+            ],
+            4: [
+                { q: "Машиналық оқыту алгоритмдерінің негізгі мақсаты?", options: ["Деректерден заңдылықтарды танып-білу", "Кодты тез жазу", "Вирустарды жою", "Интернет жылдамдығын арттыру"], correct: 0 },
+                { q: "Python-да тізімнен мәні бойынша элементті өшіру әдісі?", options: ["delete()", "pop()", "remove()", "clear()"], correct: 2 },
+                { q: "SQL-де жазбаларды белгілі бір өріс бойынша топтастыру операторы?", options: ["ORDER BY", "GROUP BY", "SORT BY", "ALIGN BY"], correct: 1 },
+                { q: "Желілік өз ара аракеттесудің 7 деңгейлі эталондық моделі?", options: ["TCP/IP", "OSI моделі", "Ethernet", "IEEE"], correct: 1 },
+                { q: "HTML-де веб-параққа сурет қосу тегі?", options: ["<image>", "<img>", "<pic>", "<src>"], correct: 1 },
+                { q: "Алгоритмнің шекті қадамдар санынан кейін аяқталу қасиеті?", options: ["Дискреттілік", "Түсініктілік", "Нәтижелілік (Шектілік)", "Жалпылық"], correct: 2 },
+                { q: "Адам психологиясын манипуляциялау арқылы құпия ақпаратты алу?", options: ["Әлеуметтік инженерия", "Криптоанализ", "Ревёрсинг", "Сниффинг"], correct: 0 },
+                { q: "Python-да екі санды бөлгендегі қалдықты табу операторы?", options: ["/", "//", "%", "mod"], correct: 2 },
+                { q: "Шектеулі аймақты (үй, офис) біріктіретін желі түрі?", options: ["WAN", "LAN", "MAN", "PAN"], correct: 1 },
+                { q: "Реляциялық мәліметтер базасында деректер қалай сақталады?", options: ["Иерархиялық ағаш ретінде", "Граф ретінде", "Екі өлшемді кесте ретінде", "Тек текстолық файлда"], correct: 2 },
+                { q: "Бейнелерді, суреттерді тану және өңдеуге арналған ИИ саласы?", options: ["Computer Vision (Компьютерлік көру)", "NLP", "Robotics", "Data Mining"], correct: 0 },
+                { q: "Python-да объектінің конструктор функциясы қалай аталады?", options: ["def construct()", "def __init__()", "def create()", "def main()"], correct: 1 },
+                { q: "Деректерді жоғалтудан сақтау үшін жасалатын көшірме?", options: ["Архив", "Резервтік көшірме (Backup)", "Кэш", "Индекс"], correct: 1 },
+                { q: "1 Мегабайтта қанша Килобайт бар?", options: ["1000 КБ", "1024 КБ", "8 КБ", "1048576 КБ"], correct: 1 },
+                { q: "Python-да дайын модульдер мен кітапханаларды қосу түйін сөзі?", options: ["include", "import", "using", "require"], correct: 1 },
+                { q: "Орталықсыздандырылған (decentralized) транзакциялар тізілімі технологиясы?", options: ["Big Data", "Blockchain", "Cloud Computing", "Grid"], correct: 1 },
+                { q: "CSS-те элементтің ішкі шегін (padding) реттейтін қасиет?", options: ["margin", "border", "padding", "spacing"], correct: 2 },
+                { q: "Графтар теориясында түйіндерді (вершина) қосатын сызық?", options: ["Қабырға (Edge)", "Вектор", "Жол", "Дуга"], correct: 0 },
+                { q: "Клиент-сервер архитектурасында сұраныс жіберуші тарап?", options: ["Сервер", "Клиент", "Браузер", "Провайдер"], correct: 1 },
+                { q: "Алгоритмнің уақытша күрделілігін белгілейтін математикалық нотация?", options: ["Big O (О-үлкен)", "Sigma", "Delta", "Binary Code"], correct: 0 }
+            ]
+        };
+
+        // ==========================================
+        // 3. ӨЗГЕРМАЛЫЛАР ЖӘНЕ КҮЙ (STATE)
+        // ==========================================
+        let studentData = { name: '', classVal: '', variant: 1 };
+        let currentQuestions = [];
+        let userAnswers = new Array(20).fill(null);
+        let currentQuestionIndex = 0;
+        let timerInterval = null;
+        let timeLeft = 30 * 60; // 30 минут секундпен
+
+        // ==========================================
+        // 4. ТЕСТТІ БАСТАУ
+        // ==========================================
+        function startQuiz(event) {
+            event.preventDefault();
+            
+            const nameInput = document.getElementById('studentName').value.trim();
+            const classInput = document.getElementById('studentClass').value.trim();
+            const variantInput = parseInt(document.getElementById('variantSelect').value);
+
+            if (!nameInput || !classInput) return;
+
+            studentData.name = nameInput;
+            studentData.classVal = classInput;
+            studentData.variant = variantInput;
+
+            currentQuestions = quizData[variantInput];
+
+            // UI жаңарту
+            document.getElementById('startModal').classList.add('hidden');
+            document.getElementById('quizApp').classList.remove('hidden');
+
+            document.getElementById('displayStudentInfo').innerText = `${studentData.name} (${studentData.classVal})`;
+            document.getElementById('displaySubjectInfo').innerText = `Информатика • ${studentData.variant}-нұсқа`;
+
+            initQuestionGrid();
+            renderQuestion();
+            startTimer();
+        }
+
+        // ==========================================
+        // 5. ТАЙМЕР ЛОГИКАСЫ (30 МИНУТ)
+        // ==========================================
+        function startTimer() {
+            updateTimerDisplay();
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                updateTimerDisplay();
+
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    alert("Уақытыңыз аяқталды! Тест автоматты түрде тапсырылады.");
+                    finishQuiz();
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            const formatted = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            const timerEl = document.getElementById('timer');
+            timerEl.innerText = formatted;
+
+            if (timeLeft < 300) { // 5 минуттан аз қалса
+                document.getElementById('timerContainer').classList.remove('text-amber-400');
+                document.getElementById('timerContainer').classList.add('text-rose-500', 'border-rose-500/50', 'bg-rose-950/20');
+            }
+        }
+
+        // ==========================================
+        // 6. СҰРАҚТАР МЕН НАВИГАЦИЯ
+        // ==========================================
+        function initQuestionGrid() {
+            const grid = document.getElementById('questionGrid');
+            grid.innerHTML = '';
+            for (let i = 0; i < 20; i++) {
+                const btn = document.createElement('button');
+                btn.id = `grid-btn-${i}`;
+                btn.innerText = i + 1;
+                btn.onclick = () => jumpToQuestion(i);
+                btn.className = `h-9 w-full rounded-lg font-semibold text-xs transition border flex items-center justify-center bg-slate-900 border-slate-700 text-slate-400 hover:border-indigo-500`;
+                grid.appendChild(btn);
+            }
+        }
+
+        function renderQuestion() {
+            const q = currentQuestions[currentQuestionIndex];
+            
+            // Бас тақырып және белгі
+            document.getElementById('questionBadge').innerText = `Сұрақ ${currentQuestionIndex + 1} / 20`;
+            document.getElementById('questionText').innerText = q.q;
+
+            // Жауаптар
+            const optionsContainer = document.getElementById('optionsContainer');
+            optionsContainer.innerHTML = '';
+
+            const optionLetters = ['A', 'B', 'C', 'D'];
+
+            q.options.forEach((opt, idx) => {
+                const isSelected = userAnswers[currentQuestionIndex] === idx;
+                const btn = document.createElement('button');
+                btn.onclick = () => selectOption(idx);
+                btn.className = `w-full text-left p-4 rounded-xl border transition flex items-center space-x-3 ${
+                    isSelected 
+                        ? 'bg-indigo-600/20 border-indigo-500 text-white shadow-lg shadow-indigo-500/10' 
+                        : 'bg-slate-900/60 border-slate-700/80 text-slate-300 hover:bg-slate-700/50 hover:border-slate-600'
+                }`;
+
+                btn.innerHTML = `
+                    <span class="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs ${
+                        isSelected ? 'bg-indigo-500 text-white' : 'bg-slate-800 text-slate-400 border border-slate-700'
+                    }">${optionLetters[idx]}</span>
+                    <span class="text-sm font-medium flex-1">${opt}</span>
+                `;
+                optionsContainer.appendChild(btn);
+            });
+
+            // Навигация түймелерінің күйі
+            document.getElementById('prevBtn').disabled = currentQuestionIndex === 0;
+            const nextBtn = document.getElementById('nextBtn');
+            if (currentQuestionIndex === 19) {
+                nextBtn.innerHTML = `Соңғы сұрақ <i class="fa-solid fa-flag-checkered ml-1"></i>`;
+            } else {
+                nextBtn.innerHTML = `Келесі <i class="fa-solid fa-chevron-right ml-1"></i>`;
+            }
+
+            updateProgress();
+            updateGridStyle();
+        }
+
+        function selectOption(index) {
+            userAnswers[currentQuestionIndex] = index;
+            renderQuestion();
+        }
+
+        function prevQuestion() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                renderQuestion();
+            }
+        }
+
+        function nextQuestion() {
+            if (currentQuestionIndex < 19) {
+                currentQuestionIndex++;
+                renderQuestion();
+            }
+        }
+
+        function jumpToQuestion(index) {
+            currentQuestionIndex = index;
+            renderQuestion();
+        }
+
+        function updateProgress() {
+            const answeredCount = userAnswers.filter(a => a !== null).length;
+            document.getElementById('progressText').innerText = `${answeredCount} / 20`;
+            const percentage = (answeredCount / 20) * 100;
+            document.getElementById('progressBar').style.width = `${percentage}%`;
+        }
+
+        function updateGridStyle() {
+            for (let i = 0; i < 20; i++) {
+                const btn = document.getElementById(`grid-btn-${i}`);
+                const isCurrent = i === currentQuestionIndex;
+                const isAnswered = userAnswers[i] !== null;
+
+                btn.className = `h-9 w-full rounded-lg font-semibold text-xs transition border flex items-center justify-center `;
+
+                if (isCurrent) {
+                    btn.className += `ring-2 ring-indigo-400 border-transparent bg-indigo-600 text-white font-bold`;
+                } else if (isAnswered) {
+                    btn.className += `bg-emerald-500/10 border-emerald-500/40 text-emerald-400`;
+                } else {
+                    btn.className += `bg-slate-900 border-slate-700 text-slate-400 hover:border-slate-500`;
+                }
+            }
+        }
+
+        // ==========================================
+        // 7. ТЕСТТІ АЯҚТАУ ЖӘНЕ НӘТИЖЕНІ ЖІБЕРУ
+        // ==========================================
+        function confirmSubmission() {
+            document.getElementById('confirmModal').classList.remove('hidden');
+        }
+
+        function closeConfirmModal() {
+            document.getElementById('confirmModal').classList.add('hidden');
+        }
+
+        function finishQuiz() {
+            clearInterval(timerInterval);
+            closeConfirmModal();
+
+            // Баллды есептеу
+            let score = 0;
+            currentQuestions.forEach((q, idx) => {
+                if (userAnswers[idx] === q.correct) {
+                    score++;
+                }
+            });
+
+            const total = 20;
+            const percentageVal = Math.round((score / total) * 100);
+            const percentageStr = `${percentageVal}%`;
+
+            // Уақытты пішімдеу (күн мен уақыт)
+            const now = new Date();
+            const dateStr = now.getFullYear() + '-' +
+                String(now.getMonth() + 1).padStart(2, '0') + '-' +
+                String(now.getDate()).padStart(2, '0') + ' ' +
+                String(now.getHours()).padStart(2, '0') + ':' +
+                String(now.getMinutes()).padStart(2, '0');
+
+            // JSON Пайлоад дайындау
+            const payload = {
+                date: dateStr,
+                studentName: studentData.name,
+                studentClass: studentData.classVal,
+                subjectTitle: `Информатика (${studentData.variant}-нұсқа)`,
+                score: score,
+                total: total,
+                percentage: percentageStr
+            };
+
+            // Нәтиже экранын көрсету
+            document.getElementById('quizApp').classList.add('hidden');
+            document.getElementById('resultModal').classList.remove('hidden');
+
+            document.getElementById('resultStudentInfo').innerText = `${studentData.name} • ${studentData.classVal} сыныбы`;
+            document.getElementById('resultScore').innerText = `${score} / ${total}`;
+            document.getElementById('resultPercentage').innerText = percentageStr;
+
+            // Google Apps Script-ке POST сұранысын жіберу
+            sendResultsToGoogleScript(payload);
+        }
+
+        async function sendResultsToGoogleScript(payload) {
+            const sendStatusEl = document.getElementById('sendStatus');
+
+            try {
+                // Apps Script үшін 'no-cors' немесе text/plain стандартын қолданамыз
+                await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                // Google Apps Script no-cors режимінде 200 қайтарады
+                sendStatusEl.className = "p-3 rounded-xl bg-emerald-950/40 text-xs text-emerald-400 border border-emerald-800/40 flex items-center justify-center space-x-2";
+                sendStatusEl.innerHTML = `<i class="fa-solid fa-circle-check text-base"></i><span>Нәтиже Google Sheets кестесіне сәтті сақталды! ✅</span>`;
+            } catch (err) {
+                console.error("Жіберу қатесі:", err);
+                sendStatusEl.className = "p-3 rounded-xl bg-rose-950/40 text-xs text-rose-400 border border-rose-800/40 flex items-center justify-center space-x-2";
+                sendStatusEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-base"></i><span>Серверге жіберу кезінде қате орын алды.</span>`;
+            }
+        }
+    </script>
+</body>
+</html>
